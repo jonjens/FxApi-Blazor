@@ -1,0 +1,82 @@
+﻿@page "/rates"
+
+@inject IHttpClientFactory _clientFactory
+
+<h3>FxData</h3>
+
+@if (string.IsNullOrWhiteSpace(errorString) == false)
+{
+    <div class="h2">@errorString</div>
+}
+else if (rates is null)
+{
+    <div class="h4">Loading...</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Base</th>
+                <th>Rate</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@rates.Base/USD</td>
+                <td>@rates.Rates.USD</td>
+                <td>@rates.Date</td>
+            </tr>
+            <tr>
+                <td>@rates.Base/NOK</td>
+                <td>@rates.Rates.NOK</td>
+                <td>@rates.Date</td>
+            </tr>
+            <tr>
+                <td>@rates.Base/CAD</td>
+                <td>@rates.Rates.CAD</td>
+                <td>@rates.Date</td>
+            </tr>
+            <tr>
+                <td>@rates.Base/GBP</td>
+                <td>@rates.Rates.GBP</td>
+                <td>@rates.Date</td>
+            </tr>
+            <tr>
+                <td>@rates.Base/AUD</td>
+                <td>@rates.Rates.AUD</td>
+                <td>@rates.Date</td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+
+@code {
+
+    FxRateModel rates;
+    string errorString;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get,
+            "https://api.ratesapi.io/api/latest");
+
+        var client = _clientFactory.CreateClient();
+
+        HttpResponseMessage response = await client.SendAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            rates = await response.Content.ReadFromJsonAsync<FxRateModel>();
+            errorString = null;
+        }
+        else
+        {
+            errorString = $"There was an error getting our rates: { response.ReasonPhrase }";
+        }
+
+    }
+}
